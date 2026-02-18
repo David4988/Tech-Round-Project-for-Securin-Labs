@@ -1,4 +1,4 @@
-# 🍽️ Recipe Codex – Frontend (API Integration Focus)
+# 🍽️ Culinary Codex – Frontend (API Integration Focus)
 
 ## 🧠 Overview
 
