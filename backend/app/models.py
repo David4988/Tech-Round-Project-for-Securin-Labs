@@ -15,3 +15,6 @@ class Recipe(Base):
     description = Column(Text)
     nutrients = Column(JSONB)
     serves = Column(String)
+    ingredients = Column(JSONB, nullable=True)
+    instructions = Column(JSONB, nullable=True)
+    serves = Column(String, nullable=True)

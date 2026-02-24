@@ -60,6 +60,7 @@ def get_recipes(
 
 
 @router.get("/search", response_model=dict)
+@router.get("/search", response_model=dict)
 def search_recipes(
     title: str = None,
     cuisine: str = None,
@@ -70,11 +71,19 @@ def search_recipes(
 ):
     query = db.query(Recipe)
 
+    # 🔥 Remove incomplete data
+    query = query.filter(
+        Recipe.title != None,
+        
+        # Recipe.ingredients != None,
+        # Recipe.instructions != None
+    )
+
     # 🔍 Title (partial match)
     if title:
         query = query.filter(Recipe.title.ilike(f"%{title}%"))
 
-    # 🍽 Cuisine (exact)
+    # 🍽 Cuisine
     if cuisine:
         query = query.filter(Recipe.cuisine == cuisine)
 
@@ -92,7 +101,7 @@ def search_recipes(
         elif op == "=":
             query = query.filter(Recipe.rating == val)
 
-    # ⏱ Total time filter
+    # ⏱ Total time
     if total_time:
         op, val = parse_filter(total_time)
         if op == ">=":
@@ -106,12 +115,12 @@ def search_recipes(
         elif op == "=":
             query = query.filter(Recipe.total_time == val)
 
-    # 🔥 Calories (JSONB)
+    # 🔥 Calories
     if calories:
         op, val = parse_filter(calories)
-
-        # extract "389 kcal" → 389
-        cal_expr = cast(Recipe.nutrients["calories"].astext, Integer)
+        cal_expr = cast(
+            func.coalesce(Recipe.nutrients["calories"].astext, "0"), Integer
+            )
 
         if op == ">=":
             query = query.filter(cal_expr >= val)
@@ -124,13 +133,18 @@ def search_recipes(
         elif op == "=":
             query = query.filter(cal_expr == val)
 
-    results = query.all()
+    # 🔥 ORDER + LIMIT (important for suggestions)
+    results = (
+        query
+        .order_by(Recipe.rating.desc().nullslast())
+        .limit(10)
+        .all()
+    )
 
     return {
         "count": len(results),
         "data": [RecipeSchema.model_validate(r) for r in results]
     }
-
 # GET ONE
 @router.get("/{recipe_id}", response_model=RecipeSchema)
 def get_recipe(recipe_id: int, db: Session = Depends(get_db)):
