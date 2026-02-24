@@ -1,36 +1,41 @@
-# 🍽️ Culinary Codex – Frontend (API Integration Focus)
+# 🍽️ Culinary Codex — Fullstack Recipe Exploration Platform
 
 ## 🧠 Overview
 
-Recipe Codex is a React-based frontend application designed to consume and display data from a FastAPI backend.
+Culinary Codex is a fullstack web application that enables users to explore, search, and interact with recipe data through a clean and responsive UI.
 
-The focus of this implementation is:
+The project focuses on efficient API integration, data handling, and UI synchronization, transforming raw backend data into a usable product experience.
 
-* Efficient API integration
-* Optimized data fetching
-* Responsive UI updates based on API state
+This project was built as part of an API integration-focused task, with additional emphasis on performance and UX.
 
 ---
 
-## ⚙️ Tech Stack (Frontend Focus)
+## ⚙️ Tech Stack
 
-* **React (Vite)** – UI framework
-* **Axios** – API communication
-* **Tailwind CSS** – Styling
-* **Framer Motion** – UI animations
-* **GSAP** – Scroll animations
-* **React Router** – Navigation
-* **Zustand** – Global state management
+### Frontend
+- React (Vite)
+- Axios (API integration)
+- Tailwind CSS
+- Framer Motion
+- GSAP
+- React Router
+- Zustand (state management)
+
+### Backend
+- FastAPI
+- SQLAlchemy
+- PostgreSQL (Dockerized)
 
 ---
 
-## 🔌 API Integration Layer
+## 🔌 API Integration (Core Focus)
 
-### 🔹 API Client Setup
+### 🔹 Centralized API Client
 
-Centralized API handling using Axios:
+A reusable Axios instance is used for all API calls.
 
-```js
+Example:
+
 import axios from "axios";
 
 const api = axios.create({
@@ -38,41 +43,28 @@ const api = axios.create({
   timeout: 5000,
 });
 
-export default api;
-```
-
 Benefits:
-
-* Reusable instance
-* Cleaner code
-* Easier scaling
+- Cleaner code
+- Reusability
+- Easy scaling
 
 ---
 
 ### 🔹 Data Fetching
 
-Example: Fetch paginated recipes
+Pagination-based fetching:
 
-```js
 const fetchRecipes = async (page) => {
   const res = await api.get(`/recipes?page=${page}&limit=10`);
   setRecipes(res.data.data);
 };
-```
 
 ---
 
-### 🔹 Search Integration (Debounced)
+### 🔹 Debounced Search
 
-Problem:
+To avoid excessive API calls:
 
-* Calling API on every keystroke → performance issues
-
-Solution:
-
-* Debounce input (300–400ms delay)
-
-```js
 useEffect(() => {
   const delay = setTimeout(() => {
     if (query) {
@@ -84,169 +76,201 @@ useEffect(() => {
 
   return () => clearTimeout(delay);
 }, [query]);
-```
 
 Impact:
-
-* Reduces unnecessary API calls
-* Improves UX and performance
+- Reduces API load
+- Improves performance
+- Better UX
 
 ---
 
 ### 🔹 Dynamic Query Handling
 
-Search endpoint supports multiple filters:
+Search supports multiple filters:
 
-```
 /api/recipes/search?title=pasta&rating>=4&cuisine=Italian
-```
 
-Frontend dynamically builds queries:
+Example:
 
-```js
-const params = {
-  title: search,
-  cuisine,
-  rating: minRating,
-};
-
-api.get("/recipes/search", { params });
-```
+api.get("/recipes/search", {
+  params: {
+    title: search,
+    cuisine,
+    rating: minRating,
+  },
+});
 
 ---
 
 ## 🔄 State Management
 
 ### Local State
-
-* `recipes`
-* `loading`
-* `error`
-* `page`
-* `query`
+- recipes
+- loading
+- error
+- page
+- search
 
 ### Global State (Zustand)
+- favorites
+- selected recipe
 
-* Favorites
-* Selected recipe
+Example:
 
-```js
 const useStore = create((set) => ({
   favorites: [],
-  addFavorite: (recipe) => set((state) => ({
-    favorites: [...state.favorites, recipe]
-  }))
+  addFavorite: (recipe) =>
+    set((state) => ({
+      favorites: [...state.favorites, recipe],
+    })),
 }));
-```
 
 ---
 
-## 🔁 UI-State Synchronization
-
-UI updates based on API state:
+## 🔁 UI–API Synchronization
 
 | State   | UI Behavior           |
-| ------- | --------------------- |
-| Loading | Spinner / skeleton    |
-| Success | Render recipe grid    |
-| Empty   | Show fallback message |
-| Error   | Display error message |
+|--------|----------------------|
+| Loading | Spinner / skeleton   |
+| Success | Render data          |
+| Empty   | Fallback message     |
+| Error   | Error message        |
 
 ---
 
-## 🔍 Core API Features Implemented
+## 🔍 Core Features
 
-### 1. Pagination
+### Pagination
+- Controlled using page state
+- Triggers API calls
 
-* Controlled using `page` state
-* Updates trigger API calls
+### Search
+- Debounced API search
+- Suggestions dropdown
+- Dynamic results
 
-```js
-setPage(prev => prev + 1);
-```
+### Filtering
+- Hybrid approach:
+  - Cuisine → client-side
+  - Rating / time → backend
 
----
+### Sorting
 
-### 2. Search
-
-* API-based filtering
-* Debounced input
-* Dynamic results update
-
----
-
-### 3. Filtering (Hybrid)
-
-* Cuisine → client-side
-* Rating / time → backend
-
----
-
-### 4. Sorting
-
-Handled client-side:
-
-```js
 recipes.sort((a, b) => b.rating - a.rating);
-```
+
+### Recipe Details
+- Dynamic route /recipe/:id
+- Fetch by ID
+- Handles incomplete data
 
 ---
 
-## 🎨 UI Components (API-Driven)
+## 🧩 UI Components
 
-* **RecipeGrid** → Displays fetched data
-* **RecipeCard** → Individual item
-* **Pagination** → Controls API requests
-* **SearchBar** → Triggers search API
-* **RecipePage** → Fetches data by ID
+- Hero (search + suggestions)
+- RecipeGrid (API data display)
+- RecipeCard
+- Pagination
+- RecipePage (details)
 
 ---
 
 ## 🎞️ Performance Optimizations
 
-* Debounced search (prevents API spam)
-* Conditional fetching (search vs list)
-* Safe rendering (`?.`, `??`)
-* Fallback images for broken URLs
+- Debounced search
+- Conditional fetching
+- Safe rendering (optional chaining)
+- Fallback data normalization
+- Image fallback handling
+
+---
+
+## 🧠 Handling Incomplete Data
+
+To ensure stable UI rendering, API responses are normalized.
+
+Example:
+
+const normalizeRecipe = (r) => ({
+  title: r?.title ?? "Untitled Recipe",
+  description: r?.description ?? "A delicious dish.",
+  ingredients: r?.ingredients?.length ? r.ingredients : ["Basic ingredients"],
+  instructions: r?.instructions?.length ? r.instructions : ["Cook and enjoy"],
+});
+
+This prevents UI crashes and improves user experience.
 
 ---
 
 ## 🚧 Challenges Faced
 
-* Excess API calls without debounce
-* Managing multiple states (search + pagination)
-* Handling missing/null API data
-* Synchronizing UI with async API responses
-* Preventing unnecessary re-renders
+- Excess API calls without debounce
+- Managing async UI state
+- Handling null / missing data
+- Syncing UI with backend responses
 
 ---
 
-## 🔮 Improvements
+## 🔮 Future Improvements
 
-* Move all filters to backend
-* Add caching (React Query / SWR)
-* Implement infinite scroll
-* Add API error boundaries
-* Improve loading skeletons
-
----
-
-## 🧠 Key Takeaways
-
-* API integration is not just fetching data
-* Managing UI state is critical
-* Debouncing significantly improves performance
-* Separation of API logic improves scalability
-* UX depends heavily on how data is handled
+- Move filters to backend
+- Add caching (React Query / SWR)
+- Infinite scroll
+- Better loading states
 
 ---
 
-## 🎯 Summary
+## ⚙️ Setup Instructions
+
+### Backend
+
+cd backend  
+pip install -r requirements.txt  
+uvicorn app.main:app --reload  
+
+---
+
+### Database (Docker)
+
+docker-compose up  
+
+---
+
+### Frontend
+
+cd frontend  
+npm install  
+npm run dev  
+
+---
+
+## 📌 Note
+
+The application is demonstrated locally.
+
+Backend uses FastAPI and PostgreSQL (Docker).  
+Frontend communicates with the local API.
+
+---
+
+## 🎯 Key Takeaways
+
+- API integration requires efficient data handling
+- UI must adapt to async states
+- Debouncing improves performance
+- Data normalization ensures stability
+- Separation of concerns improves scalability
+
+---
+
+## 🚀 Conclusion
 
 This project demonstrates:
 
-* Efficient API integration using Axios
-* Performance optimization (debounce, conditional fetch)
-* State-driven UI updates
-* Clean separation between data and UI
+- API integration using Axios
+- State-driven UI development
+- Performance optimization techniques
+- Handling real-world data inconsistencies
+- Fullstack system design
+
 ---
